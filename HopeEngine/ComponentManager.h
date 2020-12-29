@@ -30,7 +30,7 @@ public:
 	{
 		const char* typeName = typeid(T).name();
 
-		asser(componentTypes.find(typeName) == componentTypes.end() && "Registering an already existing component");
+		assert(componentTypes.find(typeName) == componentTypes.end() && "Registering an already existing component");
 
 		componentTypes.insert({ typeName, nextComponentType });
 		componentArrays.insert({ typeName, std::make_shared<ComponentArray<T>>() });
@@ -62,21 +62,17 @@ public:
 	template<typename T>
 	T& GetComponent(Entity entity)
 	{
+		return GetComponentArray<T>()->GetData(entity);
+	}
+
+	void EntityDestroyed(Entity entity)
+	{
 		// Notify each component array that an entity has been destroyed
 		// If it has a component for that entity, it will remove it
 		for (auto const& pair : componentArrays)
 		{
 			auto const& component = pair.second;
 
-			component->EntityDestroyed(entity);
-		}
-	}
-
-	void EntityDestroyed(Entity entity)
-	{
-		for (auto const& pair : componentArrays)
-		{
-			auto const& component = pair.second;
 			component->EntityDestroyed(entity);
 		}
 	}

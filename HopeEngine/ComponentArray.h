@@ -53,7 +53,7 @@ public:
 
 	T& GetData(Entity entity)
 	{
-		assert(entityToIndexMap.find(entity) != entityToIndexMap.end() && "Trying to find non-existend component");
+		assert(entityToIndexMap.find(entity) != entityToIndexMap.end() && "Trying to find non-existent component");
 
 		return componentArray[entityToIndexMap[entity]];
 	}

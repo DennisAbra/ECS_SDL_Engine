@@ -2,11 +2,12 @@
 #include "ECSSettings.h"
 #include <queue>
 #include <array>
+#include <assert.h>
 
 class EntityManager
 {
 private:
-	//-1 == unsued pos
+	
 	std::queue<Entity> availableEntities;
 
 	//Array of componentlists where the index corresponds to ent id

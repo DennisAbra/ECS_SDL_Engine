@@ -12,9 +12,13 @@ public:
 	template<typename T>
 	std::shared_ptr<T> RegisterSystem()
 	{
-		const char* typeName = type(T).name();
+		const char* typeName = typeid(T).name();
 
 		assert(systems.find(typeName) == systems.end() && "System needs registration before use");
+
+		auto system = std::make_shared<T>();
+		systems.insert({ typeName, system });
+		return system;
 	}
 
 	template<typename T>

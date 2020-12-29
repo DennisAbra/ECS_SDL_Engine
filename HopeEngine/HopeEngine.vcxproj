@@ -143,12 +143,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CubeRenderSystem.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentArray.h" />
     <ClInclude Include="ComponentManager.h" />
+    <ClInclude Include="Coordinator.h" />
+    <ClInclude Include="CubeRenderSystem.h" />
     <ClInclude Include="ECSSettings.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="GameManager.h" />

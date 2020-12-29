@@ -1,47 +1,60 @@
 #include "GameManager.h"
+#include "Coordinator.h"
+#include "Position.h"
+#include "CubeRenderSystem.h"
 
+Coordinator coordinator;
 
-void GameManager::Setup()
+void GameManager::Run()
 {
-	windowResource = std::make_unique<WindowResource>();
+	coordinator.Init();
 	timer = std::make_unique<Timer>();
-	componentManager = std::make_unique<ComponentManager>();
-	systemManager = std::make_unique<SystemManager>();
-	entityManager = std::make_unique<EntityManager>();
-}
 
-void GameManager::UpdateLoop()
-{
+	coordinator.RegisterComponent<Position>();
+	coordinator.RegisterComponent<Renderer>();
+
+	auto cubeSystem = coordinator.RegisterSystem<CubeRenderSystem>();
+
+	ComponentList compList;
+	compList.set(coordinator.GetComponentType<Position>());
+	compList.set(coordinator.GetComponentType<Renderer>());
+	coordinator.SetSystemComponentList<CubeRenderSystem>(compList);
+	std::array<Entity, MAX_ENTITIES> ents;
+
+	for (int i = 0; i < MAX_ENTITIES; i++)
+	{
+		Entity ent = coordinator.CreateEntity();
+		SDL_Color entColor;
+		entColor.b = 255.0f;
+		coordinator.AddComponent(ent, Position{ Vector2(10, i*10) });
+		coordinator.AddComponent(ent, Renderer{ entColor, 5.0f });
+		ents[i] = ent;
+	}
+
+	
 	while (!bQuit)
 	{
-		//Update timer
+		timer->Update();
 		while (SDL_PollEvent(&events))
 		{
 			if (events.type == SDL_QUIT)
 				bQuit = true;
 		}
+		timer->Reset();
 
 		PreUpdate();
-		EarlyUpdate();
 		Update();
+		cubeSystem->Update(timer->DeltaTime());
 		LateUpdate();
 
 		Render();
 	}
 }
 
-void GameManager::EarlyUpdate()
-{
-
-}
-
 void GameManager::Update()
 {
-	SDL_Color color;
-	color.a = 255;
-	color.r = 255;
-	windowResource->DrawSquare(Vector2(50.0f, 50.0f), 5.0f, color);
-	
+
+
 }
 
 void GameManager::LateUpdate()
@@ -51,6 +64,7 @@ void GameManager::LateUpdate()
 
 void GameManager::PreUpdate()
 {
+	coordinator.RenderClearBackBuffer();
 }
 
 void GameManager::Render()
@@ -59,10 +73,9 @@ void GameManager::Render()
 	frames++;
 	if (time >= 1)
 	{
-		windowResource->PrintBorderFrameCounter(frames);
 		frames = 0;
 		time = 0;
 	}
 
-	windowResource->Render();
+	coordinator.Render();
 }
