@@ -12,8 +12,27 @@ class WindowResource
 public:
 	WindowResource()
 	{
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+		{
+			printf("SDL Initialization Error: %s\n", SDL_GetError());
+		}
+
 		window = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+		assert(window != nullptr && "Window Creation error %s\n", SDL_GetError());
+
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+		assert(renderer != nullptr && "Render Creation error %s\n", SDL_GetError());
+
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+
+		int flags = IMG_INIT_PNG;
+		if (!(IMG_Init(flags) & flags))
+		{
+			printf("Error IMG initialization %s\n", IMG_GetError());
+		}
+
+		backBuffer = SDL_GetWindowSurface(window);
 	}
 	~WindowResource()
 	{
@@ -49,6 +68,7 @@ public:
 
 	void DrawTexture(SDL_Texture* tex, SDL_Rect* clip, SDL_Rect* rect, float angle, SDL_RendererFlip flip)
 	{
+		//assert(tex != nullptr && "Trying to draw a null texture");
 		SDL_RenderCopyEx(renderer, tex, NULL, rect, angle, NULL, flip);
 	}
 
@@ -61,6 +81,44 @@ public:
 	{
 		SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 		SDL_RenderDrawLine(renderer, position1.x, position1.y, position2.x, position2.y);
+	}
+
+	void DrawCircle(int32_t centerX, int32_t centerY, int32_t radius)
+	{
+		const int32_t diameter = radius * 2;
+
+		int32_t x = radius - 1;
+		int32_t y = 0;
+		int32_t tx = 1;
+		int32_t ty = 1;
+		int32_t error = tx - diameter;
+
+		while (x >= y)
+		{
+			SDL_SetRenderDrawColor(renderer, 255, 0, 0, 100);
+			SDL_RenderDrawPoint(renderer, centerX + x, centerY - y);
+			SDL_RenderDrawPoint(renderer, centerX + x, centerY + y);
+			SDL_RenderDrawPoint(renderer, centerX - x, centerY - y);
+			SDL_RenderDrawPoint(renderer, centerX - x, centerY + y);
+			SDL_RenderDrawPoint(renderer, centerX + x, centerY - y);
+			SDL_RenderDrawPoint(renderer, centerX + x, centerY + y);
+			SDL_RenderDrawPoint(renderer, centerX - x, centerY - y);
+			SDL_RenderDrawPoint(renderer, centerX - x, centerY + y);
+
+			if (error <= 0)
+			{
+				++y; 
+				error += ty;
+				ty += 2;
+			}
+
+			if (error > 0)
+			{
+				--x;
+				tx += 2;
+				error += tx - diameter;
+			}
+		}
 	}
 
 
@@ -107,7 +165,7 @@ public:
 
 
 	const char* windowName = "Hope";
-	const std::string graphicsFolderPath = "Assets/Graphics/";
+	const std::string graphicsFolderPath = "Assets/";
 private:
 
 	const std::uint32_t SCREEN_WIDTH = 1280;
@@ -115,21 +173,25 @@ private:
 
 	SDL_Renderer* renderer;
 	SDL_Window* window;
+	SDL_Surface* backBuffer;
 	std::unordered_map<const char*, SDL_Texture*> Texturemap;
 
 	SDL_Texture* LoadTexture(std::string path)
 	{
-		std::string fullpath = graphicsFolderPath + path;
+		SDL_Texture* tex = nullptr;
+		std::string fullpath = SDL_GetBasePath();
+		fullpath.append(graphicsFolderPath + path);
+		printf(fullpath.c_str());
 		SDL_Surface* surface = IMG_Load(fullpath.c_str());
 
 		if (surface == nullptr)
 		{
-			/*std::cout << "Error Loading Texture";*/
+			printf("IMG Load failed when trying to load texture %s\n", IMG_GetError());
+			return tex;
 		}
 
-		SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surface);
+		tex = SDL_CreateTextureFromSurface(renderer, surface);
 		SDL_FreeSurface(surface);
-
 		return tex;
 	}
 

@@ -9,18 +9,13 @@ class ComponentManager
 {
 private:
 
-	std::unordered_map<const char*, ComponentType> componentTypes{  };
-	std::unordered_map<const char*, std::shared_ptr<IComponentArray>> componentArrays;
-	ComponentType nextComponentType{};
+	std::array <std::shared_ptr<ComponentArrayHead>, MAX_COMPONENTS> componentArray;
+	ComponentType nrOfComponentTypes = 0;
 
 	template<typename T>
 	std::shared_ptr<ComponentArray<T>> GetComponentArray()
 	{
-		const char* typeName = typeid(T).name();
-
-		assert(componentTypes.find(typeName) != componentTypes.end() && "Component needs to be registered before use");
-
-		return std::static_pointer_cast<ComponentArray<T>>(componentArrays[typeName]);
+		return std::static_pointer_cast<ComponentArray<T>>(componentArray[GetComponentType<T>()]);
 	}
 
 public:
@@ -28,52 +23,43 @@ public:
 	template<typename T>
 	void RegisterComponent()
 	{
-		const char* typeName = typeid(T).name();
-
-		assert(componentTypes.find(typeName) == componentTypes.end() && "Registering an already existing component");
-
-		componentTypes.insert({ typeName, nextComponentType });
-		componentArrays.insert({ typeName, std::make_shared<ComponentArray<T>>() });
-		nextComponentType++;
+		componentArray[GetComponentType<T>()] = std::make_shared<ComponentArray<T>>();
 	}
 
 	template<typename T>
-	ComponentType GetComponentType()
+	void AddComponent(Entity entity, T& component)
 	{
-		const char* typeName = typeid(T).name();
-
-		assert(componentTypes.find(typeName) != componentTypes.end() && "Component needs to be registered before use");
-
-		return componentTypes[typeName];
-	}
-
-	template<typename T>
-	void AddComponent(Entity entity, T component)
-	{
-		GetComponentArray<T>()->InsertData(entity, component);
-	}
-
-	template<typename T>
-	void RemoveComponent(Entity entity)
-	{
-		GetComponentArray<T>()->RemoveData(entity);
+		GetComponentArray<T>()->AddComponent(entity, component);
 	}
 
 	template<typename T>
 	T& GetComponent(Entity entity)
 	{
-		return GetComponentArray<T>()->GetData(entity);
+		return GetComponentArray<T>()->GetComponent(entity);
 	}
 
+	template<typename T>
+	void RemoveComponent(Entity entity)
+	{
+		GetComponentArray<T>()->RemoveComponent(entity);
+	}
+
+	
 	void EntityDestroyed(Entity entity)
 	{
-		// Notify each component array that an entity has been destroyed
-		// If it has a component for that entity, it will remove it
-		for (auto const& pair : componentArrays)
-		{
-			auto const& component = pair.second;
+		
+	}
 
-			component->EntityDestroyed(entity);
-		}
+	template<typename T>
+	ComponentType GetComponentType()
+	{
+		const static ComponentType compType = nrOfComponentTypes++;
+		return compType;
+	}
+
+	template<typename T>
+	size_t GetNumberOfActiveComponents()
+	{
+		GetComponentArray<T>()->GetNumberOfActiveComponents();
 	}
 };

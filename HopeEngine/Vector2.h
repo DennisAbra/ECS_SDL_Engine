@@ -19,7 +19,21 @@ struct Vector2
 		return *this;
 	}
 
+	float Magnitude()
+	{
+		return sqrtf(x * x + y * y);
+	}
 
+	Vector2 Normalized()
+	{
+		float mag = Magnitude();
+		return Vector2(x / mag, y / mag);
+	}
+
+	float Dot(Vector2 rhs)
+	{
+		return x* rhs.x + y * rhs.y;
+	}
 
 
 };

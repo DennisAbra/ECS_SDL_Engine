@@ -11,6 +11,8 @@ class GameManager
 public:
 
 	void Run();
+
+
 	void Update();
 	void LateUpdate();
 
@@ -21,9 +23,9 @@ private:
 	int frames = 0;
 	float time = 0;
 
+	void RegisterComponents();
 	void PreUpdate();
 	void Render();
 
 	std::unique_ptr<Timer> timer;
-
 };

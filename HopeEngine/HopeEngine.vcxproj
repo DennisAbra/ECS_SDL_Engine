@@ -143,20 +143,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CubeRenderSystem.cpp" />
+    <ClCompile Include="PlayerSystems.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentArray.h" />
     <ClInclude Include="ComponentManager.h" />
+    <ClInclude Include="Components.h" />
     <ClInclude Include="Coordinator.h" />
-    <ClInclude Include="CubeRenderSystem.h" />
+    <ClInclude Include="PlayerSystems.h" />
     <ClInclude Include="ECSSettings.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="StaticComponent.h" />
     <ClInclude Include="System.h" />
     <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="Systems.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Vector2.h" />

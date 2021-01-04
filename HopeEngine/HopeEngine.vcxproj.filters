@@ -36,7 +36,7 @@
     <ClCompile Include="GameManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CubeRenderSystem.cpp">
+    <ClCompile Include="PlayerSystems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,7 +77,16 @@
     <ClInclude Include="Coordinator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CubeRenderSystem.h">
+    <ClInclude Include="StaticComponent.h">
+      <Filter>ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components.h">
+      <Filter>ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems.h">
+      <Filter>ECS\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerSystems.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

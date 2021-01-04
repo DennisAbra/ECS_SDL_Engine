@@ -1,66 +1,39 @@
 #pragma once
 #include "ECSSettings.h"
 
-class IComponentArray
-{
-public:
-	virtual ~IComponentArray() = default;
-	virtual void EntityDestroyed(Entity entity) = 0;
-};
+class ComponentArrayHead{};
 
 template<typename T>
-class ComponentArray : public IComponentArray
+class ComponentArray : public ComponentArrayHead
 {
 private:
-	//Packed array of components, specified to max entities so each entity has it's specific spot
 	std::array<T, MAX_ENTITIES> componentArray;
+	std::uint16_t currentActiveComponets = 0;
 
-	//Ent id to array index
-	std::unordered_map<Entity, size_t> entityToIndexMap;
-	//Array index to ent id
-	std::unordered_map<size_t, Entity> indexToEntityMap;
-	//total size of valid entries in array
-	size_t size;
 public:
-	void InsertData(Entity entity, T component)
+	
+	void AddComponent(Entity entity, T& component)
 	{
-		assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Same component added twice to same entity");
-
-		size_t newIndex = size;
-		entityToIndexMap[entity] = newIndex;
-		indexToEntityMap[newIndex] = entity;
-		componentArray[newIndex] = component;
-		++size;
+		componentArray[entity] = component;
+		currentActiveComponets++;
 	}
 
-	void RemoveData(Entity entity)
+	T& GetComponent(Entity entity)
 	{
-		assert(entityToIndexMap.find(entity) != entityToIndexMap.end() && "Removing non-existent component");
-
-		size_t indexOfRemovedEntity = entityToIndexMap[entity];
-		size_t indexOfLastElement = size - 1;
-		componentArray[indexOfRemovedEntity] = componentArray[indexOfLastElement];
-
-		Entity entityOfLastElement = indexToEntityMap[indexOfLastElement];
-		entityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
-		indexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
-
-		entityToIndexMap.erase(entity);
-		indexToEntityMap.erase(indexOfLastElement);
-
-		--size;
+		assert(entity <= MAX_ENTITIES && "Entity out of bounds");
+		return componentArray[entity];
 	}
 
-	T& GetData(Entity entity)
+	size_t GetNumberOfActiveComponents()
 	{
-		assert(entityToIndexMap.find(entity) != entityToIndexMap.end() && "Trying to find non-existent component");
-
-		return componentArray[entityToIndexMap[entity]];
+		currentActiveComponets;
 	}
 
-	void EntityDestroyed(Entity entity) override
+	void RemoveComponent(Entity entity)
 	{
-		if (entityToIndexMap.find(entity) != entityToIndexMap.end())
-			RemoveData(entity);
+		assert(entity <= MAX_ENTITIES && "Entity out of bounds");
+		componentArray[entity] = componentArray[currentActiveComponets];
+		currentActiveComponets--;
 	}
+
 };

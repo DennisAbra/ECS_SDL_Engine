@@ -31,9 +31,36 @@ public:
 		windowResource->DrawSquare(pos, size, col);
 	}
 
+	void DrawLine(Vector2 pos1, Vector2 pos2)
+	{
+		SDL_Color color;
+		color.r = 255.0f;
+		windowResource->DrawLine(pos1, pos2, color);
+	}
+
+	void DrawCircle(int32_t centerX, int32_t centerY, int32_t radius)
+	{
+		windowResource->DrawCircle(centerX, centerY, radius);
+	}
+
 	void Render()
 	{
 		windowResource->Render();
+	}
+
+	SDL_Texture* GetTexture(const char* textureName)
+	{
+		return windowResource->GetTexture(textureName);
+	}
+
+	void LoadNewTexture(std::string fileName, const char* textureName)
+	{
+		windowResource->LoadNewTexture(fileName, textureName);
+	}
+
+	void DrawTexture(SDL_Texture* tex, SDL_Rect* clip, SDL_Rect* rect, float angle, SDL_RendererFlip flip)
+	{
+		windowResource->DrawTexture(tex, clip, rect, angle, flip);
 	}
 
 	void RenderClearBackBuffer()
