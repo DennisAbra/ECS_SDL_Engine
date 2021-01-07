@@ -181,7 +181,6 @@ private:
 		SDL_Texture* tex = nullptr;
 		std::string fullpath = SDL_GetBasePath();
 		fullpath.append(graphicsFolderPath + path);
-		printf(fullpath.c_str());
 		SDL_Surface* surface = IMG_Load(fullpath.c_str());
 
 		if (surface == nullptr)

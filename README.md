@@ -2,19 +2,20 @@
 
 # GOALS WITH PROJECT
 
-- Build a data driven Entity Component System
-- Create a simple swarm type of game to test said ECS (think horde of enemies running towards player, which mows down the enemies with weapons of some sorts)
+- Build a data oriented Entity Component System
+- Create a simple tech demo including
+  * Simple Movement
+  * Shooting
+  * Enemies  
 
 
-# IF MORE TIME
+# TODO
 
-- Build a custom made memory allocater
-- Test Cache missrates and memory leaks
-- Compare efficieny against old "TestsHootemUp" project
+- Remove inheritance from Systems
+- Possibly change set of entites to an array (in System)
+- Improve collision systems performance
+- Improve spawning of enemies. Break out bullet spawning into its own system
+- Reiterate bullet and shooting system for both player and enemy
+- Tidy up. Components and systems in individual files. Use folders instead of filters as structure
 
-# WHY THESE GOALS
-
-- To learn more about data handling and conversion
-- Memory storage and cache hits/misses
-- Getting a better grasp of data orieted programming
-- Getting more comfortable with C++ and memory managment
+ 

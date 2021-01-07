@@ -8,8 +8,6 @@ using ComponentType = std::uint8_t;
 const ComponentType MAX_COMPONENTS = 32;
 using ComponentList = std::bitset<MAX_COMPONENTS>;
 
-using CollisionFlags = std::uint32_t;
-
 
 enum class CollisionLayer
 {
@@ -18,6 +16,7 @@ enum class CollisionLayer
 	PlayerBullets,
 	Enemy,
 	EnemyBullets,
+	None,
 
 
 	MaxLayers

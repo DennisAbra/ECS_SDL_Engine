@@ -45,3 +45,39 @@ public:
 	void Update();
 	void DrawDebug();
 };
+
+class DamageSystem : public System 
+{
+public:
+	void Update();
+};
+
+class EnemyMovementSystem : public System
+{
+public:
+	void Update();
+};
+
+class EnemySpawningSystem : public System 
+{
+public:
+	void Update(float dt);
+};
+
+class EnemyShootingSystem : public System 
+{
+public:
+	void Update(float dt);
+};
+
+class CheckForDeadEnemies : public System 
+{
+public:
+	void Update();
+};
+
+class IsPlayerAlive : public System 
+{
+public:
+	void Update();
+};

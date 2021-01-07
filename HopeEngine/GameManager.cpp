@@ -15,7 +15,7 @@ void GameManager::Run()
 
 	coordinator.LoadNewTexture("spaceship.png", "spaceship");
 	coordinator.LoadNewTexture("bullet.png", "bullet");
-	
+
 	//Register Systems
 	std::shared_ptr<RenderSystem> renderSystem = coordinator.RegisterSystem<RenderSystem>();
 	std::shared_ptr<PlayerInputSystem> inputSystem = coordinator.RegisterSystem<PlayerInputSystem>();
@@ -23,6 +23,12 @@ void GameManager::Run()
 	std::shared_ptr<PlayerBulletSystem> bulletSystem = coordinator.RegisterSystem<PlayerBulletSystem>();
 	std::shared_ptr<MovementSystem> movementSystem = coordinator.RegisterSystem<MovementSystem>();
 	std::shared_ptr<SphereCollisionSystem> sphereCollisionSystem = coordinator.RegisterSystem<SphereCollisionSystem>();
+	std::shared_ptr<DamageSystem> healthSystem = coordinator.RegisterSystem<DamageSystem>();
+	std::shared_ptr<EnemyMovementSystem> enemyMovementSystem = coordinator.RegisterSystem<EnemyMovementSystem>();
+	std::shared_ptr<EnemySpawningSystem> enemySpawner = coordinator.RegisterSystem<EnemySpawningSystem>();
+	std::shared_ptr<EnemyShootingSystem> enemyShooting = coordinator.RegisterSystem<EnemyShootingSystem>();
+	std::shared_ptr<CheckForDeadEnemies> checkDeadEnemies = coordinator.RegisterSystem<CheckForDeadEnemies>();
+	std::shared_ptr<IsPlayerAlive> playerAlive = coordinator.RegisterSystem<IsPlayerAlive>();
 
 	//Register Systems componentLists
 	ComponentList compList;
@@ -31,6 +37,7 @@ void GameManager::Run()
 	coordinator.SetSystemComponentList<RenderSystem>(compList);
 	compList.set(coordinator.GetComponentType<Velocity>());
 	compList.set(coordinator.GetComponentType<InputData>());
+	compList.set(coordinator.GetComponentType<PlayerTag>());
 	coordinator.SetSystemComponentList<PlayerInputSystem>(compList);
 	compList.set(coordinator.GetComponentType<Position>());
 	coordinator.SetSystemComponentList<PlayerMovementSystem>(compList);
@@ -40,9 +47,11 @@ void GameManager::Run()
 	compList.set(coordinator.GetComponentType<Velocity>());
 	compList.set(coordinator.GetComponentType<BulletData>());
 	compList.set(coordinator.GetComponentType<Position>());
+	compList.set(coordinator.GetComponentType<PlayerTag>());
 	coordinator.SetSystemComponentList<PlayerBulletSystem>(compList);
-	
+
 	compList.reset();
+
 	compList.set(coordinator.GetComponentType<Position>());
 	compList.set(coordinator.GetComponentType<Velocity>());
 	coordinator.SetSystemComponentList<MovementSystem>(compList);
@@ -50,7 +59,48 @@ void GameManager::Run()
 	compList.set(coordinator.GetComponentType<SphereCollider>());
 	coordinator.SetSystemComponentList<SphereCollisionSystem>(compList);
 
-	
+	compList.reset();
+
+	compList.set(coordinator.GetComponentType<Health>());
+	compList.set(coordinator.GetComponentType<SphereCollider>());
+	compList.set(coordinator.GetComponentType<Active>());
+	coordinator.SetSystemComponentList<DamageSystem>(compList);
+
+	compList.reset();
+
+	compList.set(coordinator.GetComponentType<EnemyTag>());
+	compList.set(coordinator.GetComponentType<Velocity>());
+	compList.set(coordinator.GetComponentType<Position>());
+	compList.set(coordinator.GetComponentType<EnemyData>());
+	coordinator.SetSystemComponentList<EnemyMovementSystem>(compList);
+
+	compList.reset();
+
+	compList.set(coordinator.GetComponentType<EnemySpawner>());
+	coordinator.SetSystemComponentList<EnemySpawningSystem>(compList);
+
+	compList.reset();
+
+	compList.set(coordinator.GetComponentType<Position>());
+	compList.set(coordinator.GetComponentType<Velocity>());
+	compList.set(coordinator.GetComponentType<BulletData>());
+	compList.set(coordinator.GetComponentType<Active>());
+	compList.set(coordinator.GetComponentType<EnemyTag>());
+	coordinator.SetSystemComponentList<EnemyShootingSystem>(compList);
+
+	compList.reset();
+
+	compList.set(coordinator.GetComponentType<Health>());
+	compList.set(coordinator.GetComponentType<EnemyData>());
+	coordinator.SetSystemComponentList<CheckForDeadEnemies>(compList);
+
+	compList.reset();
+	compList.set(coordinator.GetComponentType<Health>());
+	compList.set(coordinator.GetComponentType<PlayerTag>());
+	compList.set(coordinator.GetComponentType<Active>());
+	coordinator.SetSystemComponentList<IsPlayerAlive>(compList);
+
+
 	//Create entities
 
 	Entity player = coordinator.CreateEntity();
@@ -59,37 +109,20 @@ void GameManager::Run()
 	r.w = 64;
 	r.h = 64;
 	coordinator.AddComponent(player, Renderer{ "spaceship", r });
-	coordinator.AddComponent(player, Velocity{Vector2(), 1000.0f });
+	coordinator.AddComponent(player, Velocity{ Vector2(), 1000.0f });
 	coordinator.AddComponent(player, PlayerTag{});
 	coordinator.AddComponent(player, InputData{});
 	CollisionSet playerSet;
 	playerSet[static_cast<int>(CollisionLayer::Enemy)] = 1;
 	playerSet[static_cast<int>(CollisionLayer::EnemyBullets)] = 1;
-	coordinator.AddComponent(player, SphereCollider{ 25, playerSet, CollisionLayer::Player});
+	coordinator.AddComponent(player, SphereCollider{ 25, playerSet, CollisionLayer::Player });
+	coordinator.AddComponent(player, Active{ true });
+	coordinator.AddComponent(player, Health{ 10 });
 
-	Entity ent = coordinator.CreateEntity();
-	coordinator.AddComponent(ent, Position{ Vector2(250.0f, 300.0f) });
-	SDL_Rect rb;
-	rb.w = 64;
-	rb.h = 64;
-	coordinator.AddComponent(ent, Renderer{ "bullet", rb });
-	coordinator.AddComponent(ent, Velocity{ Vector2(), 1000.0f });
-	CollisionSet enemySet;
-	enemySet[static_cast<int>(CollisionLayer::Player)] = 1;
-	enemySet[static_cast<int>(CollisionLayer::PlayerBullets)] = 1;
-	coordinator.AddComponent(ent, SphereCollider{ 15, enemySet, CollisionLayer::Enemy});
 
-	//printf("\n");
-	//CollisionSet a;
-	//CollisionSet b;
-	//printf(a.to_string().c_str());
-	//printf("\n");
-	//b[static_cast<int>(CollisionLayer::Default)] = 1;
-	//printf(b.to_string().c_str());
-	//printf("\n");
-	//a[static_cast<int>(CollisionLayer::Default)] = 1;
-	//if (a == b)
-	//	printf("Collision on Default layer");
+	Entity e = coordinator.CreateEntity();
+	coordinator.AddComponent<EnemySpawner>(e, EnemySpawner{0, 3, 0, 3, 0, 1.0f, 5.0f});
+
 
 	//Init system if needed
 	renderSystem->Init();
@@ -108,16 +141,20 @@ void GameManager::Run()
 
 		PreUpdate();
 		Update();
+
 		renderSystem->Update(timer->DeltaTime());
 		inputSystem->Update();
 		playerMovementSystem->Update(timer->DeltaTime());
 		bulletSystem->Update(timer->DeltaTime());
 		movementSystem->Update(timer->DeltaTime());
 		sphereCollisionSystem->Update();
-		sphereCollisionSystem->DrawDebug();
-
-
-		//Spawn bullets with an offset of +24 on x from players pos
+		//sphereCollisionSystem->DrawDebug();
+		healthSystem->Update();
+		enemyMovementSystem->Update();
+		enemySpawner->Update(timer->DeltaTime());
+		enemyShooting->Update(timer->DeltaTime());
+		checkDeadEnemies->Update();
+		playerAlive->Update();
 		LateUpdate();
 
 		Render();
@@ -134,6 +171,11 @@ void GameManager::RegisterComponents()
 	coordinator.RegisterComponent<InputData>();
 	coordinator.RegisterComponent<BulletData>();
 	coordinator.RegisterComponent<SphereCollider>();
+	coordinator.RegisterComponent<Active>();
+	coordinator.RegisterComponent<Health>();
+	coordinator.RegisterComponent<EnemyTag>();
+	coordinator.RegisterComponent<EnemySpawner>();
+	coordinator.RegisterComponent<EnemyData>();
 }
 
 void GameManager::Update()

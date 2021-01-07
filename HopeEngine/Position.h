@@ -39,7 +39,6 @@ struct ShooterData
 struct BulletData
 {
 	Entity owner;
-	bool isActive;
 	float timeAlive;
 };
 
@@ -48,4 +47,38 @@ struct SphereCollider
 	float radius;
 	CollisionSet collisionSet;
 	CollisionLayer collisionID;
+	bool wasHit = false;
+};
+
+struct Active
+{
+	bool isActive;
+};
+
+struct Health
+{
+	int health;
+};
+
+struct EnemyTag
+{
+
+};
+
+struct EnemyData
+{
+	float timeBetweenShots = 1.0f;
+	float timeSinceShot;
+	Entity spawner;
+};
+
+struct EnemySpawner
+{
+	uint8_t deadThisWave;
+	uint8_t spawnsPerWave;
+	uint8_t amountSpawned;
+	uint8_t totalWaves;
+	uint8_t currentWave;
+	float timeBetweenSpawns;
+	float timeSinceSpawned;
 };
