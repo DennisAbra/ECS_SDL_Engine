@@ -117,7 +117,7 @@ void GameManager::Run()
 
 
 	Entity e = coordinator.CreateEntity();
-	coordinator.AddComponent<EnemySpawner>(e, EnemySpawner{0, 10, 0, 3, 0, 1.0f, 5.0f});
+	coordinator.AddComponent<EnemySpawner>(e, EnemySpawner{0, 3, 0, 3, 0, 1.0f, 5.0f});
 
 
 
@@ -165,7 +165,7 @@ void GameManager::Run()
 		enemyShooting->Update(timer->DeltaTime());
 		checkDeadEnemies->Update();
 		playerAlive->Update();
-		bulletCleaner->Update();
+		bulletCleaner->Update(timer->DeltaTime());
 		LateUpdate();
 
 		Render();

@@ -83,5 +83,5 @@ public:
 class CleanUpBullets : public System 
 {
 public:
-	void Update();
+	void Update(float dt);
 };

@@ -66,8 +66,8 @@ void PlayerShootingSystem::Update(float dt)
 		{
 			Entity bullet = coordinator.CreateEntity();
 			coordinator.AddComponent<Position>(bullet, Position{ pos.location });
-			coordinator.AddComponent<BulletData>(bullet, BulletData{ 0.0f, 0.3f });
-			coordinator.AddComponent<Velocity>(bullet, Velocity{ Vector2(0,-1), 750.0f });
+			coordinator.AddComponent<BulletData>(bullet, BulletData{ 0.0f, 0.5f });
+			coordinator.AddComponent<Velocity>(bullet, Velocity{ Vector2(0,-1), 1000.0f });
 			coordinator.AddComponent<PlayerTag>(bullet, PlayerTag{ });
 			SDL_Rect r;
 			r.w = 16;
@@ -322,17 +322,18 @@ void IsPlayerAlive::Update()
 // Stop reusing entities
 // Destory and create them at the right time instead
 
-void CleanUpBullets::Update()
+void CleanUpBullets::Update(float dt)
 {
 	for (auto& const entity : entities)
 	{
-		BulletData data = coordinator.GetComponent<BulletData>(entity);
+		BulletData& data = coordinator.GetComponent<BulletData>(entity);
 		SphereCollider col = coordinator.GetComponent<SphereCollider>(entity);
 
-		if (data.timeAlive > data.maxTimeAlive || col.wasHit)
+		if (data.timeAlive >= data.maxTimeAlive || col.wasHit)
 		{
 			coordinator.DestroyEntity(entity);
 			break;
 		}
+		data.timeAlive += dt;
 	}
 }
