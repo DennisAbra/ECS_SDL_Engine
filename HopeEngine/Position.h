@@ -34,12 +34,13 @@ struct PlayerTag
 struct ShooterData
 {
 	float timeSinceShot;
+	float timeBetweenShots = 1;
 };
 
 struct BulletData
 {
-	Entity owner;
 	float timeAlive;
+	float maxTimeAlive;
 };
 
 struct SphereCollider
@@ -48,11 +49,6 @@ struct SphereCollider
 	CollisionSet collisionSet;
 	CollisionLayer collisionID;
 	bool wasHit = false;
-};
-
-struct Active
-{
-	bool isActive;
 };
 
 struct Health
@@ -67,8 +63,8 @@ struct EnemyTag
 
 struct EnemyData
 {
-	float timeBetweenShots = 1.0f;
 	float timeSinceShot;
+	float timeBetweenShots = 1.0f;
 	Entity spawner;
 };
 

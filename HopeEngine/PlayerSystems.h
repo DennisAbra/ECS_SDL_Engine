@@ -6,7 +6,6 @@ union SDL_Event;
 class RenderSystem : public System
 {
 public:
-	void Init();
 	void Update(float dt);
 };
 
@@ -24,11 +23,10 @@ public:
 	void Update(float dt);
 };
 
-class PlayerBulletSystem : public System 
+class PlayerShootingSystem : public System 
 {
 public: 
 
-	void Init(int amountToSpawn, Entity owner);
 	void Update(float dt);
 };
 
@@ -70,13 +68,19 @@ public:
 	void Update(float dt);
 };
 
-class CheckForDeadEnemies : public System 
+class KillDeadEnemies : public System 
 {
 public:
 	void Update();
 };
 
 class IsPlayerAlive : public System 
+{
+public:
+	void Update();
+};
+
+class CleanUpBullets : public System 
 {
 public:
 	void Update();

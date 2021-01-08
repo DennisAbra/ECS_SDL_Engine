@@ -7,27 +7,16 @@
 extern Coordinator coordinator;
 
 
-void RenderSystem::Init()
-{
-	//for (Entity const& entity : entities)
-	//{
-	//	Renderer& renderer = coordinator.GetComponent<Renderer>(entity);
-
-	//}
-}
-
 void RenderSystem::Update(float dt)
 {
 	for (Entity const& entity : entities)
 	{
 		Renderer& renderer = coordinator.GetComponent<Renderer>(entity);
 		Position position = coordinator.GetComponent<Position>(entity);
-		Active active = coordinator.GetComponent<Active>(entity);
 
 		renderer.rect.x = position.location.x - renderer.rect.w / 2;
 		renderer.rect.y = position.location.y - renderer.rect.h / 2;
-		if (active.isActive)
-			coordinator.DrawTexture(coordinator.GetTexture(renderer.texName), &renderer.rect, &renderer.rect, 0, SDL_FLIP_NONE);
+		coordinator.DrawTexture(coordinator.GetTexture(renderer.texName), &renderer.rect, &renderer.rect, 0, SDL_FLIP_NONE);
 	}
 }
 
@@ -40,15 +29,11 @@ void PlayerInputSystem::Update()
 	for (Entity const& entity : entities)
 	{
 		InputData& input = coordinator.GetComponent<InputData>(entity);
-		Active& active = coordinator.GetComponent<Active>(entity);
 		const Uint8* kb = SDL_GetKeyboardState(NULL);
-		if (!active.isActive)
-		{
-			input.y = 0;
-			input.x = 0;
-			input.isShooting = false;
-			continue;
-		}
+
+		input.y = 0;
+		input.x = 0;
+		input.isShooting = false;
 
 		input.y = -kb[SDL_SCANCODE_W] + kb[SDL_SCANCODE_S];
 		input.x = -kb[SDL_SCANCODE_A] + kb[SDL_SCANCODE_D];
@@ -68,64 +53,35 @@ void PlayerMovementSystem::Update(float dt)
 	}
 }
 
-void PlayerBulletSystem::Init(int amountToSpawn, Entity owner)
+void PlayerShootingSystem::Update(float dt)
 {
-	for (int i = 0; i < amountToSpawn; i++)
+	for (auto& const entity : entities)
 	{
-		Entity bullet = coordinator.CreateEntity();
-		coordinator.AddComponent<Position>(bullet, Position{ Vector2(-100,-100) });
-		coordinator.AddComponent<BulletData>(bullet, BulletData{ owner, false });
-		coordinator.AddComponent<Velocity>(bullet, Velocity{ Vector2(0,-1), 1500 });
-		coordinator.AddComponent<PlayerTag>(bullet, PlayerTag{ });
-		SDL_Rect r;
-		r.w = 16;
-		r.h = 16;
-		coordinator.AddComponent<Renderer>(bullet, Renderer{ "bullet", r });
-		CollisionSet bulletSet;
-		bulletSet[static_cast<int>(CollisionLayer::Enemy)] = 1;
+		Position& pos = coordinator.GetComponent<Position>(entity);
+		ShooterData& data = coordinator.GetComponent<ShooterData>(entity);
+		InputData input = coordinator.GetComponent<InputData>(entity);
 
-		coordinator.AddComponent<SphereCollider>(bullet, SphereCollider{ 5, bulletSet, CollisionLayer::None });
-		coordinator.AddComponent<Active>(bullet, Active{ false });
-	}
-}
 
-void PlayerBulletSystem::Update(float dt)
-{
-	static float t = 0;
-	for (auto& const bullet : entities)
-	{
-		BulletData& data = coordinator.GetComponent<BulletData>(bullet);
-		Position& pos = coordinator.GetComponent<Position>(bullet);
-		Active& active = coordinator.GetComponent<Active>(bullet);
-		SphereCollider& col = coordinator.GetComponent<SphereCollider>(bullet);
-		InputData input = coordinator.GetComponent<InputData>(data.owner);
-		Position playerPos = coordinator.GetComponent<Position>(data.owner);
-		//Get ShooterData
-		//ShooterData should implement T as a shootingCooldown
-
-		if (input.isShooting > 0 && !active.isActive && t <= 0)
+		if (input.isShooting > 0 && data.timeSinceShot >= data.timeBetweenShots)
 		{
-			data.timeAlive = 0;
-			active.isActive = true;
-			col.collisionID = CollisionLayer::PlayerBullets;
-			pos.location = playerPos.location;
-			t = 1;
+			Entity bullet = coordinator.CreateEntity();
+			coordinator.AddComponent<Position>(bullet, Position{ pos.location });
+			coordinator.AddComponent<BulletData>(bullet, BulletData{ 0.0f, 0.3f });
+			coordinator.AddComponent<Velocity>(bullet, Velocity{ Vector2(0,-1), 750.0f });
+			coordinator.AddComponent<PlayerTag>(bullet, PlayerTag{ });
+			SDL_Rect r;
+			r.w = 16;
+			r.h = 16;
+			coordinator.AddComponent<Renderer>(bullet, Renderer{ "bullet", r });
+			CollisionSet bulletSet;
+			bulletSet[static_cast<int>(CollisionLayer::Enemy)] = 1;
+
+			coordinator.AddComponent<SphereCollider>(bullet, SphereCollider{ 5, bulletSet, CollisionLayer::PlayerBullets });
+
+			data.timeSinceShot = 0;
 		}
 
-		if (active.isActive)
-		{
-			data.timeAlive += dt;
-			if (data.timeAlive > 1)
-			{
-				active.isActive = false;
-			}
-		}
-
-		if (!active.isActive)
-		{
-			pos.location = Vector2(50, 50);
-		}
-		t -= dt;
+		data.timeSinceShot += dt;
 	}
 }
 
@@ -135,11 +91,8 @@ void MovementSystem::Update(float dt)
 	{
 		Position& pos = coordinator.GetComponent<Position>(ent);
 		Velocity vel = coordinator.GetComponent<Velocity>(ent);
-		Active active = coordinator.GetComponent<Active>(ent);
 
-
-		if (active.isActive)
-			pos.location += vel.velocity * vel.speed * dt;
+		pos.location += vel.velocity * vel.speed * dt;
 	}
 }
 
@@ -151,10 +104,6 @@ void SphereCollisionSystem::Update()
 
 	for (auto& const a : entities)
 	{
-		Active& aActive = coordinator.GetComponent<Active>(a);
-		if (!aActive.isActive)
-			continue;
-
 		SphereCollider& aColl = coordinator.GetComponent<SphereCollider>(a);
 		Position aPos = coordinator.GetComponent<Position>(a);
 		Velocity aVel = coordinator.GetComponent<Velocity>(a);
@@ -163,9 +112,7 @@ void SphereCollisionSystem::Update()
 		{
 			if (a == b)
 				continue;
-			Active& bActive = coordinator.GetComponent<Active>(b);
-			if (!bActive.isActive)
-				continue;
+
 			SphereCollider& bColl = coordinator.GetComponent<SphereCollider>(b);
 
 			if (aColl.collisionSet[static_cast<int>(bColl.collisionID)] == 0)
@@ -204,15 +151,6 @@ void SphereCollisionSystem::Update()
 				//Collision happened
 				aColl.wasHit = true;
 				bColl.wasHit = true;
-				coordinator.DrawLine(aPos.location, bPos.location);
-				if (aColl.collisionID == CollisionLayer::PlayerBullets || aColl.collisionID == CollisionLayer::EnemyBullets)
-				{
-					aActive.isActive = false;
-				}
-				if (bColl.collisionID == CollisionLayer::PlayerBullets || bColl.collisionID == CollisionLayer::EnemyBullets)
-				{
-					bActive.isActive = false;
-				}
 				continue;
 			}
 		}
@@ -235,17 +173,12 @@ void DamageSystem::Update()
 	for (auto& const ent : entities)
 	{
 		SphereCollider& collider = coordinator.GetComponent<SphereCollider>(ent);
-		Active& active = coordinator.GetComponent<Active>(ent);
 		Health& health = coordinator.GetComponent<Health>(ent);
 
 		if (collider.wasHit)
 		{
 			health.health -= 1;
 			collider.wasHit = false;
-			//if (health.health <= 0)
-			//{
-			//	active.isActive = false;
-			//}
 		}
 	}
 }
@@ -306,30 +239,10 @@ void EnemySpawningSystem::Update(float dt)
 
 			enemySet[static_cast<int>(CollisionLayer::PlayerBullets)] = 1;
 			coordinator.AddComponent(ent, SphereCollider{ 15, enemySet, CollisionLayer::Enemy });
-			coordinator.AddComponent(ent, Active{ true });
 			coordinator.AddComponent(ent, Health{ 5 });
 			coordinator.AddComponent(ent, EnemyTag{ });
-			coordinator.AddComponent(ent, EnemyData{ 1.0f, 1.0f, e });
+			coordinator.AddComponent(ent, EnemyData{ 0.0f, 1.0f, e });
 
-			for (int i = 0; i < 3; i++)
-			{
-				//Spawn bullet this enemy will use
-				Entity bullet = coordinator.CreateEntity();
-				coordinator.AddComponent<Position>(bullet, Position{ Vector2(-100,-100) });
-				coordinator.AddComponent<BulletData>(bullet, BulletData{ ent, false });
-				coordinator.AddComponent<Velocity>(bullet, Velocity{ Vector2(1,1), 1000.0f });
-				SDL_Rect r;
-				r.w = 16;
-				r.h = 16;
-				coordinator.AddComponent<Renderer>(bullet, Renderer{ "bullet", r });
-				CollisionSet bulletSet;
-				bulletSet[static_cast<int>(CollisionLayer::Player)] = 1;
-
-				coordinator.AddComponent<SphereCollider>(bullet, SphereCollider{ 5, bulletSet, CollisionLayer::EnemyBullets });
-				coordinator.AddComponent<Active>(bullet, Active{ false });
-				coordinator.AddComponent<EnemyTag>(bullet, EnemyTag{  });
-
-			}
 			enemySpawner.timeSinceSpawned = 0;
 			enemySpawner.amountSpawned++;
 		}
@@ -349,52 +262,43 @@ void EnemyShootingSystem::Update(float dt)
 {
 	for (auto& const e : entities)
 	{
-		BulletData data = coordinator.GetComponent<BulletData>(e);
-		EnemyData& ownerData = coordinator.GetComponent<EnemyData>(data.owner);
-		Position ownerPos = coordinator.GetComponent<Position>(data.owner);
-		Velocity& velocity = coordinator.GetComponent<Velocity>(e);
-		Position& pos = coordinator.GetComponent<Position>(e);
-		Active& active = coordinator.GetComponent<Active>(e);
-
-		Active ownerActive = coordinator.GetComponent<Active>(data.owner);
-		if (!ownerActive.isActive)
-			active.isActive = false;
+		EnemyData& ownerData = coordinator.GetComponent<EnemyData>(e);
+		Position ownerPos = coordinator.GetComponent<Position>(e);
 
 		if (ownerData.timeSinceShot > ownerData.timeBetweenShots)
 		{
-			active.isActive = true;
-			velocity.velocity = Vector2(0.5f, 1);
-			pos.location = ownerPos.location;
 			ownerData.timeSinceShot = 0;
-		}
+			Entity bullet = coordinator.CreateEntity();
+			coordinator.AddComponent<Position>(bullet, Position{ ownerPos.location });
+			coordinator.AddComponent<BulletData>(bullet, BulletData{ 0.0f, 1.0f });
+			coordinator.AddComponent<Velocity>(bullet, Velocity{ Vector2(0.5f,1.0f), 500.0f });
+			SDL_Rect r;
+			r.w = 16;
+			r.h = 16;
+			coordinator.AddComponent<Renderer>(bullet, Renderer{ "bullet", r });
+			CollisionSet bulletSet;
+			bulletSet[static_cast<int>(CollisionLayer::Player)] = 1;
 
-		if (active.isActive)
-		{
-			data.timeAlive++;
-			if (data.timeAlive > 1)
-			{
-				pos.location = Vector2(1270, 50);
-				active.isActive = false;
-				data.timeAlive = 0;
-			}
+			coordinator.AddComponent<SphereCollider>(bullet, SphereCollider{ 5, bulletSet, CollisionLayer::EnemyBullets });
+			coordinator.AddComponent<EnemyTag>(bullet, EnemyTag{  });
 		}
 		ownerData.timeSinceShot += dt;
 	}
 }
 
-void CheckForDeadEnemies::Update()
+void KillDeadEnemies::Update()
 {
 	for (auto& const e : entities)
 	{
 		EnemyData data = coordinator.GetComponent<EnemyData>(e);
 		Health hp = coordinator.GetComponent<Health>(e);
-		Active& active = coordinator.GetComponent<Active>(e);
 
-		if (hp.health <= 0 && active.isActive)
+		if (hp.health <= 0)
 		{
 			EnemySpawner& spawner = coordinator.GetComponent<EnemySpawner>(data.spawner);
 			spawner.deadThisWave++;
-			active.isActive = false;
+			coordinator.DestroyEntity(e);
+			break;
 		}
 	}
 }
@@ -403,14 +307,31 @@ void IsPlayerAlive::Update()
 {
 	for (auto& const e : entities)
 	{
-		Active& active = coordinator.GetComponent<Active>(e);
 		Health healt = coordinator.GetComponent<Health>(e);
 
 		if (healt.health <= 0)
 		{
-			active.isActive = false;
 			printf("You lost");
-			coordinator.RemoveComponent<Health>(e);
+			coordinator.DestroyEntity(e);
+			break;
+		}
+	}
+}
+
+
+// Stop reusing entities
+// Destory and create them at the right time instead
+
+void CleanUpBullets::Update()
+{
+	for (auto& const entity : entities)
+	{
+		BulletData data = coordinator.GetComponent<BulletData>(entity);
+		SphereCollider col = coordinator.GetComponent<SphereCollider>(entity);
+
+		if (data.timeAlive > data.maxTimeAlive || col.wasHit)
+		{
+			coordinator.DestroyEntity(entity);
 			break;
 		}
 	}

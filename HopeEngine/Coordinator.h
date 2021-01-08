@@ -63,6 +63,11 @@ public:
 		windowResource->DrawTexture(tex, clip, rect, angle, flip);
 	}
 
+	void PrintFrameCounter(int i)
+	{
+		windowResource->PrintBorderFrameCounter(i);
+	}
+
 	void RenderClearBackBuffer()
 	{
 		windowResource->ClearBackBuffer();
