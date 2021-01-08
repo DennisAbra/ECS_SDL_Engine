@@ -229,17 +229,17 @@ void EnemySpawningSystem::Update(float dt)
 		if (enemySpawner.timeSinceSpawned >= enemySpawner.timeBetweenSpawns && enemySpawner.amountSpawned < enemySpawner.spawnsPerWave)
 		{
 			Entity ent = coordinator.CreateEntity();
-			coordinator.AddComponent(ent, Position{ Vector2(-20.0f, 50.0f) });
+			coordinator.AddComponent(ent, Position{ Vector2(50.0f, 50.0f) });
 			SDL_Rect rb;
 			rb.w = 64;
 			rb.h = 64;
 			coordinator.AddComponent(ent, Renderer{ "bullet", rb });
-			coordinator.AddComponent(ent, Velocity{ Vector2(0,1), 250.0f });
+			coordinator.AddComponent(ent, Velocity{ Vector2(1,1), 250.0f });
 			CollisionSet enemySet;
 
 			enemySet[static_cast<int>(CollisionLayer::PlayerBullets)] = 1;
 			coordinator.AddComponent(ent, SphereCollider{ 15, enemySet, CollisionLayer::Enemy });
-			coordinator.AddComponent(ent, Health{ 5 });
+			coordinator.AddComponent(ent, Health{ 1 });
 			coordinator.AddComponent(ent, EnemyTag{ });
 			coordinator.AddComponent(ent, EnemyData{ 0.0f, 1.0f, e });
 
@@ -279,7 +279,7 @@ void EnemyShootingSystem::Update(float dt)
 			CollisionSet bulletSet;
 			bulletSet[static_cast<int>(CollisionLayer::Player)] = 1;
 
-			coordinator.AddComponent<SphereCollider>(bullet, SphereCollider{ 5, bulletSet, CollisionLayer::EnemyBullets });
+			coordinator.AddComponent<SphereCollider>(bullet, SphereCollider{ 7, bulletSet, CollisionLayer::EnemyBullets });
 			coordinator.AddComponent<EnemyTag>(bullet, EnemyTag{  });
 		}
 		ownerData.timeSinceShot += dt;

@@ -71,7 +71,7 @@ struct EnemyData
 struct EnemySpawner
 {
 	uint8_t deadThisWave;
-	uint8_t spawnsPerWave;
+	uint16_t spawnsPerWave;
 	uint8_t amountSpawned;
 	uint8_t totalWaves;
 	uint8_t currentWave;

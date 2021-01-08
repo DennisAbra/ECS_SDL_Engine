@@ -97,7 +97,7 @@ public:
 	{
 		componentManager->AddComponent(entity, comp);
 		auto compList = entityManager->GetComponentList(entity);
-		compList.set(componentManager->GetComponentType<T>(), true);
+		compList.set(componentManager->GetComponentID<T>(), true);
 		entityManager->SetComponentList(entity, compList);
 
 		systemManager->EntityComponentListChanged(entity, compList);
@@ -109,7 +109,7 @@ public:
 		componentManager->RemoveComponent<T>(entity);
 
 		auto compList = entityManager->GetComponentList(entity);
-		compList.set(componentManager->GetComponentType<T>(), false);
+		compList.set(componentManager->GetComponentID<T>(), false);
 		entityManager->SetComponentList(entity, compList);
 
 		systemManager->EntityComponentListChanged(entity, compList);
@@ -122,9 +122,9 @@ public:
 	}
 
 	template<typename T>
-	ComponentType GetComponentType()
+	ComponentID GetComponentID()
 	{
-		return componentManager->GetComponentType<T>();
+		return componentManager->GetComponentID<T>();
 	}
 
 	template<typename T>

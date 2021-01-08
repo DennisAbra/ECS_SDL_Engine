@@ -16,6 +16,8 @@ void GameManager::Run()
 	coordinator.LoadNewTexture("spaceship.png", "spaceship");
 	coordinator.LoadNewTexture("bullet.png", "bullet");
 
+	//Shooter demo
+	 
 	//Register Systems
 	std::shared_ptr<RenderSystem> renderSystem = coordinator.RegisterSystem<RenderSystem>();
 	std::shared_ptr<PlayerInputSystem> inputSystem = coordinator.RegisterSystem<PlayerInputSystem>();
@@ -33,67 +35,67 @@ void GameManager::Run()
 
 	//Register Systems componentLists
 	ComponentList compList;
-	compList.set(coordinator.GetComponentType<Position>());
-	compList.set(coordinator.GetComponentType<Renderer>());
+	compList.set(coordinator.GetComponentID<Position>());
+	compList.set(coordinator.GetComponentID<Renderer>());
 	coordinator.SetSystemComponentList<RenderSystem>(compList);
-	compList.set(coordinator.GetComponentType<Velocity>());
-	compList.set(coordinator.GetComponentType<InputData>());
-	compList.set(coordinator.GetComponentType<PlayerTag>());
+	compList.set(coordinator.GetComponentID<Velocity>());
+	compList.set(coordinator.GetComponentID<InputData>());
+	compList.set(coordinator.GetComponentID<PlayerTag>());
 	coordinator.SetSystemComponentList<PlayerInputSystem>(compList);
-	compList.set(coordinator.GetComponentType<Position>());
+	compList.set(coordinator.GetComponentID<Position>());
 	coordinator.SetSystemComponentList<PlayerMovementSystem>(compList);
 	coordinator.SetSystemComponentList<PlayerShootingSystem>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<Position>());
-	compList.set(coordinator.GetComponentType<Velocity>());
+	compList.set(coordinator.GetComponentID<Position>());
+	compList.set(coordinator.GetComponentID<Velocity>());
 	coordinator.SetSystemComponentList<MovementSystem>(compList);
 
-	compList.set(coordinator.GetComponentType<SphereCollider>());
+	compList.set(coordinator.GetComponentID<SphereCollider>());
 	coordinator.SetSystemComponentList<SphereCollisionSystem>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<Health>());
-	compList.set(coordinator.GetComponentType<SphereCollider>());
+	compList.set(coordinator.GetComponentID<Health>());
+	compList.set(coordinator.GetComponentID<SphereCollider>());
 	coordinator.SetSystemComponentList<DamageSystem>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<EnemyTag>());
-	compList.set(coordinator.GetComponentType<Velocity>());
-	compList.set(coordinator.GetComponentType<Position>());
-	compList.set(coordinator.GetComponentType<EnemyData>());
+	compList.set(coordinator.GetComponentID<EnemyTag>());
+	compList.set(coordinator.GetComponentID<Velocity>());
+	compList.set(coordinator.GetComponentID<Position>());
+	compList.set(coordinator.GetComponentID<EnemyData>());
 	coordinator.SetSystemComponentList<EnemyMovementSystem>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<EnemySpawner>());
+	compList.set(coordinator.GetComponentID<EnemySpawner>());
 	coordinator.SetSystemComponentList<EnemySpawningSystem>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<Position>());
-	compList.set(coordinator.GetComponentType<EnemyData>());
-	compList.set(coordinator.GetComponentType<EnemyTag>());
+	compList.set(coordinator.GetComponentID<Position>());
+	compList.set(coordinator.GetComponentID<EnemyData>());
+	compList.set(coordinator.GetComponentID<EnemyTag>());
 	coordinator.SetSystemComponentList<EnemyShootingSystem>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<Health>());
-	compList.set(coordinator.GetComponentType<EnemyData>());
+	compList.set(coordinator.GetComponentID<Health>());
+	compList.set(coordinator.GetComponentID<EnemyData>());
 	coordinator.SetSystemComponentList<KillDeadEnemies>(compList);
 
 	compList.reset();
-	compList.set(coordinator.GetComponentType<Health>());
-	compList.set(coordinator.GetComponentType<PlayerTag>());
+	compList.set(coordinator.GetComponentID<Health>());
+	compList.set(coordinator.GetComponentID<PlayerTag>());
 	coordinator.SetSystemComponentList<IsPlayerAlive>(compList);
 
 	compList.reset();
 
-	compList.set(coordinator.GetComponentType<BulletData>());
-	compList.set(coordinator.GetComponentType<SphereCollider>());
+	compList.set(coordinator.GetComponentID<BulletData>());
+	compList.set(coordinator.GetComponentID<SphereCollider>());
 	coordinator.SetSystemComponentList<CleanUpBullets>(compList);
 
 
@@ -117,12 +119,9 @@ void GameManager::Run()
 
 
 	Entity e = coordinator.CreateEntity();
-	coordinator.AddComponent<EnemySpawner>(e, EnemySpawner{0, 3, 0, 3, 0, 1.0f, 5.0f});
+	coordinator.AddComponent<EnemySpawner>(e, EnemySpawner{0, 50, 0, 3, 0, 0.1f, 5.0f});
 
-
-
-	float d = 0;
-	int frameCount = 0;
+	
 
 	//Test
 	const int FPS = 60;
@@ -135,23 +134,19 @@ void GameManager::Run()
 	{
 		frameStart = SDL_GetTicks();
 		timer->Update();
+
 		while (SDL_PollEvent(&events))
 		{
 			if (events.type == SDL_QUIT)
 				bQuit = true;
 		}
 
-		d += timer->DeltaTime();
-		frameCount++;
+
 		PreUpdate();
 		Update();
-		if (d > 1)
-		{
-			coordinator.PrintFrameCounter(frameCount);
-			d = 0;
-			frameCount = 0;
-		}
 
+		//shooter demo
+		
 		renderSystem->Update(timer->DeltaTime());
 		inputSystem->Update();
 		playerMovementSystem->Update(timer->DeltaTime());
@@ -166,6 +161,7 @@ void GameManager::Run()
 		checkDeadEnemies->Update();
 		playerAlive->Update();
 		bulletCleaner->Update(timer->DeltaTime());
+		
 		LateUpdate();
 
 		Render();
@@ -220,6 +216,7 @@ void GameManager::Render()
 	frames++;
 	if (time >= 1)
 	{
+		coordinator.PrintFrameCounter(frames);
 		frames = 0;
 		time = 0;
 	}

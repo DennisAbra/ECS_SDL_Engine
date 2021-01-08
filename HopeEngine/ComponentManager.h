@@ -10,12 +10,12 @@ class ComponentManager
 private:
 
 	std::array <std::shared_ptr<ComponentArrayHead>, MAX_COMPONENTS> componentArray;
-	ComponentType nrOfComponentTypes = 0;
+	ComponentID nrOfComponentTypes = 0;
 
 	template<typename T>
 	std::shared_ptr<ComponentArray<T>> GetComponentArray()
 	{
-		return std::static_pointer_cast<ComponentArray<T>>(componentArray[GetComponentType<T>()]);
+		return std::static_pointer_cast<ComponentArray<T>>(componentArray[GetComponentID<T>()]);
 	}
 
 public:
@@ -23,7 +23,7 @@ public:
 	template<typename T>
 	void RegisterComponent()
 	{
-		componentArray[GetComponentType<T>()] = std::make_shared<ComponentArray<T>>();
+		componentArray[GetComponentID<T>()] = std::make_shared<ComponentArray<T>>();
 	}
 
 	template<typename T>
@@ -51,9 +51,9 @@ public:
 	}
 
 	template<typename T>
-	ComponentType GetComponentType()
+	ComponentID GetComponentID()
 	{
-		const static ComponentType compType = nrOfComponentTypes++;
+		const static ComponentID compType = nrOfComponentTypes++;
 		return compType;
 	}
 
